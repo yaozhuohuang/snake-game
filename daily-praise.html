@@ -27,6 +27,11 @@
             font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
             overflow: hidden;
             position: relative;
+            transition: background 0.5s ease;
+        }
+
+        body.mode-boyfriend {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 50%, #43e97b 100%);
         }
 
         /* Floating hearts background */
@@ -387,6 +392,39 @@
             cursor: pointer;
             margin-top: 15px;
         }
+
+        /* Mode Switcher */
+        .mode-switcher {
+            display: flex;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50px;
+            padding: 5px;
+            margin-bottom: 20px;
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .mode-btn {
+            background: transparent;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 50px;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .mode-btn.active {
+            background: rgba(255, 255, 255, 0.9);
+            color: #764ba2;
+        }
+
+        .mode-btn:hover:not(.active) {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+        }
     </style>
 </head>
 <body>
@@ -412,6 +450,12 @@
     </div>
 
     <div class="container">
+        <!-- Mode Switcher -->
+        <div class="mode-switcher">
+            <button class="mode-btn active" id="modeSelf">夸夸自己 ✨</button>
+            <button class="mode-btn" id="modeBoyfriend">夸夸男朋友 💕</button>
+        </div>
+
         <div class="streak-badge">
             <span class="icon">🔥</span>
             <span class="text">已连续被夸</span>
@@ -436,8 +480,11 @@
     </div>
 
     <script>
-        // 夸夸语录库
-        const praises = [
+        // 当前模式：self（夸夸自己）或 boyfriend（夸夸男朋友）
+        let currentMode = 'self';
+
+        // 夸夸语录库 - 夸自己
+        const praisesSelf = [
             { emoji: "🌟", text: "你今天的样子真的超棒！" },
             { emoji: "💪", text: "你的坚持和努力，终将闪闪发光！" },
             { emoji: "🌈", text: "你就是那道独一无二的彩虹！" },
@@ -477,6 +524,46 @@
             { emoji: "💝", text: "你值得被这世界温柔以待！" }
         ];
 
+        // 夸夸语录库 - 夸男朋友
+        const praisesBoyfriend = [
+            { emoji: "💕", text: "有你在身边，我感到无比安心！" },
+            { emoji: "🤵", text: "你认真工作的样子，真的超级帅气！" },
+            { emoji: "🏆", text: "你就是我心目中的冠军！" },
+            { emoji: "🌟", text: "你的温柔和体贴，让我觉得自己是世界上最幸福的人！" },
+            { emoji: "💪", text: "你的努力和坚持，是我学习的榜样！" },
+            { emoji: "🤗", text: "每次抱抱你，所有的烦恼都消失了！" },
+            { emoji: "😊", text: "你的笑容，是我一天中最期待的风景！" },
+            { emoji: "🎯", text: "有你在，我就有无穷的勇气去面对一切！" },
+            { emoji: "🌈", text: "你让我的生活变得五彩斑斓！" },
+            { emoji: "💎", text: "你就像一颗宝石，越了解越觉得珍贵！" },
+            { emoji: "🔥", text: "你的热情和正能量，总能感染我！" },
+            { emoji: "🎵", text: "和你在一起的时光，是最动听的旋律！" },
+            { emoji: "🌻", text: "你就是那个给我带来阳光的人！" },
+            { emoji: "🤝", text: "谢谢你总是陪在我身边，支持我、鼓励我！" },
+            { emoji: "🎁", text: "认识你，是我收到过最好的礼物！" },
+            { emoji: "🌊", text: "你的包容和理解，让我深深感动！" },
+            { emoji: "🚀", text: "有你的陪伴，我相信我们可以飞得更高！" },
+            { emoji: "⭐", text: "你是我生命中最亮的那颗星！" },
+            { emoji: "🏠", text: "有你在的地方，就是我最温暖的家！" },
+            { emoji: "💖", text: "你的爱，让我变成了更好的自己！" },
+            { emoji: "🌙", text: "连晚风都在告诉我，遇见你有多幸运！" },
+            { emoji: "🎨", text: "是你给我的生活添上了最美丽的色彩！" },
+            { emoji: "🦸", text: "你就是我的超级英雄！" },
+            { emoji: "🌺", text: "谢谢你让我的世界充满花香和爱意！" },
+            { emoji: "💫", text: "和你在一起的每一天，都闪闪发光！" },
+            { emoji: "🎪", text: "你总能把平凡的日子变得充满惊喜！" },
+            { emoji: "🌄", text: "每个清晨醒来，想到有你就很幸福！" },
+            { emoji: "🎊", text: "能和你在一起，每天都值得庆祝！" },
+            { emoji: "🔐", text: "你的肩膀，是我最安全的港湾！" },
+            { emoji: "💝", text: "你是我的唯一，也是我的全部！" },
+            { emoji: "🌟", text: "你的优秀，让我感到骄傲！" },
+            { emoji: "🤗", text: "你的拥抱，有治愈一切的力量！" },
+            { emoji: "💐", text: "想把全世界的花都送给你！" },
+            { emoji: "🎈", text: "和你在一起，我的心就像气球一样飞得好高！" },
+            { emoji: "🏅", text: "在我心里，你就是最棒的男朋友！" },
+            { emoji: "✨", text: "你让我的世界充满了魔法和奇迹！" }
+        ];
+
         // 初始化
         const streakDaysEl = document.getElementById('streakDays');
         const emojiEl = document.getElementById('emoji');
@@ -486,6 +573,8 @@
         const historySection = document.getElementById('historySection');
         const historyList = document.getElementById('historyList');
         const heartsContainer = document.getElementById('heartsContainer');
+        const modeSelfBtn = document.getElementById('modeSelf');
+        const modeBoyfriendBtn = document.getElementById('modeBoyfriend');
 
         // 获取今日日期字符串
         function getTodayString() {
@@ -500,9 +589,16 @@
                 return JSON.parse(data);
             }
             return {
-                lastPraiseDate: null,
-                streakDays: 0,
-                history: []
+                self: {
+                    lastPraiseDate: null,
+                    streakDays: 0,
+                    history: []
+                },
+                boyfriend: {
+                    lastPraiseDate: null,
+                    streakDays: 0,
+                    history: []
+                }
             };
         }
 
@@ -511,8 +607,22 @@
             localStorage.setItem('dailyPraiseData', JSON.stringify(data));
         }
 
+        // 获取当前模式的数据
+        function getCurrentModeData() {
+            const data = getData();
+            return data[currentMode];
+        }
+
+        // 保存当前模式的数据
+        function saveCurrentModeData(modeData) {
+            const data = getData();
+            data[currentMode] = modeData;
+            saveData(data);
+        }
+
         // 获取随机夸奖
         function getRandomPraise() {
+            const praises = currentMode === 'self' ? praisesSelf : praisesBoyfriend;
             return praises[Math.floor(Math.random() * praises.length)];
         }
 
@@ -572,45 +682,46 @@
         }
 
         // 更新连续天数
-        function updateStreak(data) {
+        function updateStreak(modeData) {
             const today = getTodayString();
-            const lastDate = new Date(data.lastPraiseDate);
+            const lastDate = new Date(modeData.lastPraiseDate);
             const todayDate = new Date(today);
 
             // 计算日期差（天数）
             const diffTime = todayDate - lastDate;
             const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
 
-            if (data.lastPraiseDate === today) {
+            if (modeData.lastPraiseDate === today) {
                 // 今天已经夸过了，保持不变
             } else if (diffDays === 1) {
                 // 连续第二天，增加计数
-                data.streakDays++;
+                modeData.streakDays++;
             } else if (diffDays > 1) {
                 // 中断了，重置
-                data.streakDays = 1;
+                modeData.streakDays = 1;
             } else {
                 // 第一次或同一天
-                data.streakDays = 1;
+                modeData.streakDays = 1;
             }
 
-            data.lastPraiseDate = today;
-            streakDaysEl.textContent = data.streakDays;
+            modeData.lastPraiseDate = today;
+            streakDaysEl.textContent = modeData.streakDays;
         }
 
         // 添加到历史记录
         function addToHistory(praise) {
-            const data = getData();
+            const allData = getData();
+            const modeData = allData[currentMode];
             const today = getTodayString();
             const now = new Date();
             const timeString = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
 
             // 检查今天是否已有记录
-            const existingIndex = data.history.findIndex(h => h.date === today);
+            const existingIndex = modeData.history.findIndex(h => h.date === today);
 
             if (existingIndex === -1) {
                 // 今天还没有记录，添加新记录
-                data.history.unshift({
+                modeData.history.unshift({
                     date: today,
                     time: timeString,
                     emoji: praise.emoji,
@@ -618,7 +729,7 @@
                 });
             } else {
                 // 今天已有记录，更新
-                data.history[existingIndex] = {
+                modeData.history[existingIndex] = {
                     date: today,
                     time: timeString,
                     emoji: praise.emoji,
@@ -627,18 +738,19 @@
             }
 
             // 只保留最近30条记录
-            data.history = data.history.slice(0, 30);
+            modeData.history = modeData.history.slice(0, 30);
 
-            saveData(data);
+            allData[currentMode] = modeData;
+            saveData(allData);
             updateHistoryDisplay();
         }
 
         // 更新历史记录显示
         function updateHistoryDisplay() {
-            const data = getData();
+            const modeData = getCurrentModeData();
             historyList.innerHTML = '';
 
-            data.history.forEach(item => {
+            modeData.history.forEach(item => {
                 const div = document.createElement('div');
                 div.className = 'history-item';
                 div.innerHTML = `
@@ -651,19 +763,31 @@
             });
         }
 
-        // 初始化应用
-        function initApp() {
-            createHearts();
+        // 切换模式
+        function switchMode(mode) {
+            if (currentMode === mode) return;
 
-            const data = getData();
+            currentMode = mode;
+            const modeData = getCurrentModeData();
+
+            // 更新按钮状态
+            if (mode === 'self') {
+                modeSelfBtn.classList.add('active');
+                modeBoyfriendBtn.classList.remove('active');
+                document.body.classList.remove('mode-boyfriend');
+            } else {
+                modeSelfBtn.classList.remove('active');
+                modeBoyfriendBtn.classList.add('active');
+                document.body.classList.add('mode-boyfriend');
+            }
+
+            // 更新连续天数显示
+            streakDaysEl.textContent = modeData.streakDays || 0;
+
+            // 显示今天的夸奖
             const today = getTodayString();
-
-            // 更新连续天数
-            updateStreak(data);
-
-            // 如果今天还没被夸过，添加到历史
-            if (data.lastPraiseDate === today) {
-                const todayPraise = data.history.find(h => h.date === today);
+            if (modeData.lastPraiseDate === today && modeData.history.length > 0) {
+                const todayPraise = modeData.history.find(h => h.date === today);
                 if (todayPraise) {
                     showPraise({ emoji: todayPraise.emoji, text: todayPraise.text });
                 } else {
@@ -677,11 +801,49 @@
                 addToHistory(praise);
             }
 
-            saveData(data);
+            // 更新历史记录显示
+            updateHistoryDisplay();
+        }
+
+        // 初始化应用
+        function initApp() {
+            createHearts();
+
+            const modeData = getCurrentModeData();
+
+            // 更新连续天数
+            updateStreak(modeData);
+            saveCurrentModeData(modeData);
+
+            // 显示夸奖
+            const today = getTodayString();
+            if (modeData.lastPraiseDate === today && modeData.history.length > 0) {
+                const todayPraise = modeData.history.find(h => h.date === today);
+                if (todayPraise) {
+                    showPraise({ emoji: todayPraise.emoji, text: todayPraise.text });
+                } else {
+                    const praise = getRandomPraise();
+                    showPraise(praise);
+                    addToHistory(praise);
+                }
+            } else {
+                const praise = getRandomPraise();
+                showPraise(praise);
+                addToHistory(praise);
+            }
+
             updateHistoryDisplay();
         }
 
         // 事件监听
+        modeSelfBtn.addEventListener('click', () => {
+            switchMode('self');
+        });
+
+        modeBoyfriendBtn.addEventListener('click', () => {
+            switchMode('boyfriend');
+        });
+
         newPraiseBtn.addEventListener('click', () => {
             const praise = getRandomPraise();
             showPraise(praise);
