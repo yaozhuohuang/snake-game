@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#667eea">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="每日夸夸">
+    <title>每日夸夸</title>
+    <link rel="manifest" href="./manifest.json">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%23667eea'/%3E%3Cstop offset='100%25' style='stop-color:%23764ba2'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100' height='100' rx='22' fill='url(%23g)'/%3E%3Ctext x='50' y='68' font-size='60' text-anchor='middle' fill='white'%3E💝%3C/text%3E%3C/svg%3E">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Floating hearts background */
+        .hearts-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: hidden;
+            z-index: 0;
+        }
+
+        .heart {
+            position: absolute;
+            font-size: 20px;
+            opacity: 0;
+            animation: floatHeart 8s ease-in infinite;
+        }
+
+        @keyframes floatHeart {
+            0% {
+                opacity: 0;
+                transform: translateY(100vh) scale(0);
+            }
+            10% {
+                opacity: 0.8;
+            }
+            90% {
+                opacity: 0.8;
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-100px) scale(1);
+            }
+        }
+
+        .container {
+            text-align: center;
+            z-index: 1;
+            padding: 20px;
+            max-width: 600px;
+        }
+
+        .streak-badge {
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(10px);
+            padding: 12px 28px;
+            border-radius: 50px;
+            display: inline-block;
+            margin-bottom: 30px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.4);
+            }
+            50% {
+                transform: scale(1.05);
+                box-shadow: 0 0 20px 10px rgba(255, 255, 255, 0.1);
+            }
+        }
+
+        .streak-badge .icon {
+            font-size: 24px;
+            margin-right: 8px;
+        }
+
+        .streak-badge .text {
+            color: #fff;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .streak-badge .days {
+            color: #ffeb3b;
+            font-size: 28px;
+            font-weight: bold;
+            margin: 0 5px;
+        }
+
+        .praise-card {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(20px);
+            border-radius: 30px;
+            padding: 50px 40px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.2);
+            margin-bottom: 30px;
+            min-height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+
+        .emoji {
+            font-size: 80px;
+            margin-bottom: 20px;
+            animation: bounce 1s ease-in-out;
+        }
+
+        @keyframes bounce {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-20px);
+            }
+        }
+
+        .praise-text {
+            color: #fff;
+            font-size: 28px;
+            font-weight: 600;
+            line-height: 1.6;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            opacity: 0;
+            animation: fadeInUp 0.8s ease-out forwards;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            background: rgba(255, 255, 255, 0.9);
+            color: #764ba2;
+            border: none;
+            padding: 15px 35px;
+            font-size: 18px;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+            background: #fff;
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.2);
+            color: #fff;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .history-section {
+            margin-top: 30px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .history-section h3 {
+            color: #fff;
+            font-size: 16px;
+            margin-bottom: 15px;
+            opacity: 0.9;
+        }
+
+        .history-item {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 14px;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .history-item:last-child {
+            border-bottom: none;
+        }
+
+        .history-date {
+            opacity: 0.6;
+            font-size: 12px;
+        }
+
+        /* Confetti effect */
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            pointer-events: none;
+            animation: confettiFall 3s ease-out forwards;
+        }
+
+        @keyframes confettiFall {
+            0% {
+                opacity: 1;
+                transform: translateY(0) rotate(0deg);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(100vh) rotate(720deg);
+            }
+        }
+
+        /* Scrollbar styling */
+        .history-section::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .history-section::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+        }
+
+        .history-section::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 3px;
+        }
+
+        /* Install prompt banner */
+        .install-banner {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 255, 255, 0.95);
+            padding: 15px 25px;
+            border-radius: 50px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            animation: slideUp 0.5s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateX(-50%) translateY(100px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+        }
+
+        .install-banner .text {
+            color: #764ba2;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .install-banner .btn-install {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .install-banner .btn-install:hover {
+            transform: scale(1.05);
+        }
+
+        .install-banner .btn-close {
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            opacity: 0.5;
+            padding: 5px;
+        }
+
+        .install-banner .btn-close:hover {
+            opacity: 1;
+        }
+
+        /* iOS install hint */
+        .ios-install-hint {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .ios-install-hint .content {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            max-width: 320px;
+            text-align: center;
+        }
+
+        .ios-install-hint .content h3 {
+            color: #764ba2;
+            margin-bottom: 15px;
+        }
+
+        .ios-install-hint .content p {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 10px;
+        }
+
+        .ios-install-hint .content .icon {
+            font-size: 40px;
+            margin-bottom: 15px;
+        }
+
+        .ios-install-hint .btn-close {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="hearts-container" id="heartsContainer"></div>
+
+    <!-- Install Banner -->
+    <div class="install-banner" id="installBanner" style="display: none;">
+        <span class="text">📱 安装到主屏幕，每天都能收到夸夸！</span>
+        <button class="btn-install" id="installBtn">安装</button>
+        <button class="btn-close" id="closeBannerBtn">✕</button>
+    </div>
+
+    <!-- iOS Install Hint -->
+    <div class="ios-install-hint" id="iosHint" style="display: none;">
+        <div class="content">
+            <div class="icon">📱</div>
+            <h3>添加到主屏幕</h3>
+            <p>1. 点击底部的分享按钮</p>
+            <p>2. 选择"添加到主屏幕"</p>
+            <p>3. 点击"添加"完成安装</p>
+            <button class="btn-close" id="closeIosHint">知道了</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="streak-badge">
+            <span class="icon">🔥</span>
+            <span class="text">已连续被夸</span>
+            <span class="days" id="streakDays">0</span>
+            <span class="text">天</span>
+        </div>
+
+        <div class="praise-card">
+            <div class="emoji" id="emoji">✨</div>
+            <div class="praise-text" id="praiseText">今天也要加油哦！</div>
+        </div>
+
+        <div class="buttons">
+            <button class="btn" id="newPraiseBtn">再来一句 💝</button>
+            <button class="btn btn-secondary" id="toggleHistoryBtn">查看历史 📜</button>
+        </div>
+
+        <div class="history-section" id="historySection" style="display: none;">
+            <h3>📝 历史夸夸记录</h3>
+            <div id="historyList"></div>
+        </div>
+    </div>
+
+    <script>
+        // 夸夸语录库
+        const praises = [
+            { emoji: "🌟", text: "你今天的样子真的超棒！" },
+            { emoji: "💪", text: "你的坚持和努力，终将闪闪发光！" },
+            { emoji: "🌈", text: "你就是那道独一无二的彩虹！" },
+            { emoji: "🎯", text: "你的每一个小进步，都值得被看见！" },
+            { emoji: "🌸", text: "像花儿一样，你也在用自己的方式绽放！" },
+            { emoji: "⭐", text: "你比星星还要耀眼！" },
+            { emoji: "🎨", text: "你就是生活最美的艺术品！" },
+            { emoji: "🦋", text: "继续勇敢飞翔吧，美丽的蝴蝶！" },
+            { emoji: "🌺", text: "你的笑容比花儿还灿烂！" },
+            { emoji: "💎", text: "你就像钻石一样，越磨越亮！" },
+            { emoji: "🎪", text: "生活因你而更加精彩！" },
+            { emoji: "🎵", text: "你是这首生命之歌最动人的旋律！" },
+            { emoji: "🌻", text: "你就是那个永远向阳的人！" },
+            { emoji: "🏆", text: "在你心里，你已经是冠军了！" },
+            { emoji: "🌙", text: "温柔的你，连月亮都自愧不如！" },
+            { emoji: "🔥", text: "你的热情，能点燃整个世界！" },
+            { emoji: "🎁", text: "你就是上天赐予这个世界最好的礼物！" },
+            { emoji: "📚", text: "你的智慧，让人敬佩不已！" },
+            { emoji: "🌊", text: "你的胸怀，比大海还要宽广！" },
+            { emoji: "🎭", text: "你在人生的舞台上，演绎着最精彩的故事！" },
+            { emoji: "🌄", text: "你就是那个带来希望的人！" },
+            { emoji: "🎨", text: "你的创造力，让世界变得更美好！" },
+            { emoji: "🤝", text: "你的善良，温暖了无数人的心！" },
+            { emoji: "🚀", text: "没有什么能够阻挡你前进的步伐！" },
+            { emoji: "🌿", text: "你的成长，每一天都在继续！" },
+            { emoji: "🎪", text: "你的人生就是一场精彩的表演！" },
+            { emoji: "💫", text: "你就是那颗最闪亮的星！" },
+            { emoji: "🌈", text: "有你在的地方，就有彩虹！" },
+            { emoji: "🏅", text: "你就是自己人生的金牌得主！" },
+            { emoji: "🎯", text: "你正朝着正确的方向前进！" },
+            { emoji: "💐", text: "愿你每天都收到满满的花和夸奖！" },
+            { emoji: "🎈", text: "你的梦想，终将高飞！" },
+            { emoji: "🌻", text: "你就是那个给别人带来阳光的人！" },
+            { emoji: "✨", text: "你今天又比昨天更棒了！" },
+            { emoji: "🎊", text: "值得庆祝的是，又有一个这么棒的你！" },
+            { emoji: "🌺", text: "你的存在，本身就是一种美好！" },
+            { emoji: "💝", text: "你值得被这世界温柔以待！" }
+        ];
+
+        // 初始化
+        const streakDaysEl = document.getElementById('streakDays');
+        const emojiEl = document.getElementById('emoji');
+        const praiseTextEl = document.getElementById('praiseText');
+        const newPraiseBtn = document.getElementById('newPraiseBtn');
+        const toggleHistoryBtn = document.getElementById('toggleHistoryBtn');
+        const historySection = document.getElementById('historySection');
+        const historyList = document.getElementById('historyList');
+        const heartsContainer = document.getElementById('heartsContainer');
+
+        // 获取今日日期字符串
+        function getTodayString() {
+            const now = new Date();
+            return `${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}`;
+        }
+
+        // 获取数据
+        function getData() {
+            const data = localStorage.getItem('dailyPraiseData');
+            if (data) {
+                return JSON.parse(data);
+            }
+            return {
+                lastPraiseDate: null,
+                streakDays: 0,
+                history: []
+            };
+        }
+
+        // 保存数据
+        function saveData(data) {
+            localStorage.setItem('dailyPraiseData', JSON.stringify(data));
+        }
+
+        // 获取随机夸奖
+        function getRandomPraise() {
+            return praises[Math.floor(Math.random() * praises.length)];
+        }
+
+        // 显示夸奖
+        function showPraise(praise) {
+            // 重置动画
+            praiseTextEl.style.animation = 'none';
+            emojiEl.style.animation = 'none';
+
+            // 强制重排
+            praiseTextEl.offsetHeight;
+            emojiEl.offsetHeight;
+
+            // 设置新内容
+            emojiEl.textContent = praise.emoji;
+            praiseTextEl.textContent = praise.text;
+
+            // 重新触发动画
+            praiseTextEl.style.animation = 'fadeInUp 0.8s ease-out forwards';
+            emojiEl.style.animation = 'bounce 1s ease-in-out';
+
+            // 创建彩带效果
+            createConfetti();
+        }
+
+        // 创建彩带效果
+        function createConfetti() {
+            const colors = ['#ff6b6b', '#feca57', '#48dbfb', '#ff9ff3', '#54a0ff', '#5f27cd', '#00d2d3', '#1dd1a1'];
+
+            for (let i = 0; i < 50; i++) {
+                setTimeout(() => {
+                    const confetti = document.createElement('div');
+                    confetti.className = 'confetti';
+                    confetti.style.left = Math.random() * 100 + 'vw';
+                    confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                    confetti.style.animationDuration = (Math.random() * 2 + 2) + 's';
+                    document.body.appendChild(confetti);
+
+                    setTimeout(() => confetti.remove(), 4000);
+                }, i * 30);
+            }
+        }
+
+        // 创建背景爱心
+        function createHearts() {
+            const heartEmojis = ['❤️', '💕', '💖', '💗', '💝', '✨', '⭐', '🌟'];
+
+            for (let i = 0; i < 15; i++) {
+                const heart = document.createElement('div');
+                heart.className = 'heart';
+                heart.textContent = heartEmojis[Math.floor(Math.random() * heartEmojis.length)];
+                heart.style.left = Math.random() * 100 + '%';
+                heart.style.animationDelay = Math.random() * 8 + 's';
+                heart.style.animationDuration = (Math.random() * 4 + 6) + 's';
+                heartsContainer.appendChild(heart);
+            }
+        }
+
+        // 更新连续天数
+        function updateStreak(data) {
+            const today = getTodayString();
+            const lastDate = new Date(data.lastPraiseDate);
+            const todayDate = new Date(today);
+
+            // 计算日期差（天数）
+            const diffTime = todayDate - lastDate;
+            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+            if (data.lastPraiseDate === today) {
+                // 今天已经夸过了，保持不变
+            } else if (diffDays === 1) {
+                // 连续第二天，增加计数
+                data.streakDays++;
+            } else if (diffDays > 1) {
+                // 中断了，重置
+                data.streakDays = 1;
+            } else {
+                // 第一次或同一天
+                data.streakDays = 1;
+            }
+
+            data.lastPraiseDate = today;
+            streakDaysEl.textContent = data.streakDays;
+        }
+
+        // 添加到历史记录
+        function addToHistory(praise) {
+            const data = getData();
+            const today = getTodayString();
+            const now = new Date();
+            const timeString = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+
+            // 检查今天是否已有记录
+            const existingIndex = data.history.findIndex(h => h.date === today);
+
+            if (existingIndex === -1) {
+                // 今天还没有记录，添加新记录
+                data.history.unshift({
+                    date: today,
+                    time: timeString,
+                    emoji: praise.emoji,
+                    text: praise.text
+                });
+            } else {
+                // 今天已有记录，更新
+                data.history[existingIndex] = {
+                    date: today,
+                    time: timeString,
+                    emoji: praise.emoji,
+                    text: praise.text
+                };
+            }
+
+            // 只保留最近30条记录
+            data.history = data.history.slice(0, 30);
+
+            saveData(data);
+            updateHistoryDisplay();
+        }
+
+        // 更新历史记录显示
+        function updateHistoryDisplay() {
+            const data = getData();
+            historyList.innerHTML = '';
+
+            data.history.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'history-item';
+                div.innerHTML = `
+                    <span style="font-size: 16px; margin-right: 8px;">${item.emoji}</span>
+                    <span>${item.text}</span>
+                    <br>
+                    <span class="history-date">${item.date} ${item.time}</span>
+                `;
+                historyList.appendChild(div);
+            });
+        }
+
+        // 初始化应用
+        function initApp() {
+            createHearts();
+
+            const data = getData();
+            const today = getTodayString();
+
+            // 更新连续天数
+            updateStreak(data);
+
+            // 如果今天还没被夸过，添加到历史
+            if (data.lastPraiseDate === today) {
+                const todayPraise = data.history.find(h => h.date === today);
+                if (todayPraise) {
+                    showPraise({ emoji: todayPraise.emoji, text: todayPraise.text });
+                } else {
+                    const praise = getRandomPraise();
+                    showPraise(praise);
+                    addToHistory(praise);
+                }
+            } else {
+                const praise = getRandomPraise();
+                showPraise(praise);
+                addToHistory(praise);
+            }
+
+            saveData(data);
+            updateHistoryDisplay();
+        }
+
+        // 事件监听
+        newPraiseBtn.addEventListener('click', () => {
+            const praise = getRandomPraise();
+            showPraise(praise);
+            addToHistory(praise);
+        });
+
+        toggleHistoryBtn.addEventListener('click', () => {
+            if (historySection.style.display === 'none') {
+                historySection.style.display = 'block';
+                toggleHistoryBtn.textContent = '隐藏历史 📜';
+            } else {
+                historySection.style.display = 'none';
+                toggleHistoryBtn.textContent = '查看历史 📜';
+            }
+        });
+
+        // 启动应用
+        initApp();
+
+        // ============ PWA 功能 ============
+
+        // 注册 Service Worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(registration => {
+                        console.log('Service Worker 注册成功:', registration);
+                    })
+                    .catch(error => {
+                        console.log('Service Worker 注册失败:', error);
+                    });
+            });
+        }
+
+        // 安装提示逻辑
+        let deferredPrompt;
+        const installBanner = document.getElementById('installBanner');
+        const installBtn = document.getElementById('installBtn');
+        const closeBannerBtn = document.getElementById('closeBannerBtn');
+        const iosHint = document.getElementById('iosHint');
+        const closeIosHint = document.getElementById('closeIosHint');
+
+        // 检测是否是iOS设备
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+
+        // 检测是否已经安装
+        const isInstalled = window.matchMedia('(display-mode: standalone)').matches ||
+                           window.navigator.standalone === true;
+
+        // 显示安装横幅（非iOS）
+        window.addEventListener('beforeinstallprompt', (e) => {
+            // 阻止默认提示
+            e.preventDefault();
+            // 保存事件
+            deferredPrompt = e;
+
+            // 检查是否已经显示过安装提示
+            const hasShownPrompt = localStorage.getItem('installPromptShown');
+            if (!hasShownPrompt && !isInstalled) {
+                setTimeout(() => {
+                    installBanner.style.display = 'flex';
+                }, 2000);
+            }
+        });
+
+        // iOS安装提示
+        if (isIOS && !isInstalled) {
+            const hasShownIosHint = localStorage.getItem('iosInstallHintShown');
+            if (!hasShownIosHint) {
+                setTimeout(() => {
+                    iosHint.style.display = 'flex';
+                }, 3000);
+            }
+        }
+
+        // 安装按钮点击
+        installBtn.addEventListener('click', async () => {
+            if (deferredPrompt) {
+                // 显示安装提示
+                deferredPrompt.prompt();
+                // 等待用户响应
+                const { outcome } = await deferredPrompt.userChoice;
+                console.log(`用户响应: ${outcome}`);
+                // 重置deferredPrompt
+                deferredPrompt = null;
+                // 隐藏横幅
+                installBanner.style.display = 'none';
+                // 记录已显示
+                localStorage.setItem('installPromptShown', 'true');
+            }
+        });
+
+        // 关闭安装横幅
+        closeBannerBtn.addEventListener('click', () => {
+            installBanner.style.display = 'none';
+            localStorage.setItem('installPromptShown', 'true');
+        });
+
+        // 关闭iOS提示
+        closeIosHint.addEventListener('click', () => {
+            iosHint.style.display = 'none';
+            localStorage.setItem('iosInstallHintShown', 'true');
+        });
+
+        // 检测APP安装成功
+        window.addEventListener('appinstalled', () => {
+            installBanner.style.display = 'none';
+            console.log('PWA已成功安装');
+        });
+    </script>
+</body>
+</html>
